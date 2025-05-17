@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Freedom Ticketon - Results{% endblock %}
+
+{% block content %}
+<section class="results-section">
+    <div class="card">
+        <div class="result-header">
+            <h2>Recommendation Results</h2>
+            <div class="result-status">
+                <span class="success"><i class="fas fa-check-circle"></i> Processing Complete</span>
+            </div>
+        </div>
+        
+        <div class="result-summary">
+            <div class="summary-item">
+                <div class="summary-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="summary-content">
+                    <h3>Users Processed</h3>
+                    <p class="summary-value">{{ stats.user_count }}</p>
+                </div>
+            </div>
+            
+            <div class="summary-item">
+                <div class="summary-icon">
+                    <i class="fas fa-ticket-alt"></i>
+                </div>
+                <div class="summary-content">
+                    <h3>Recommendations Generated</h3>
+                    <p class="summary-value">{{ stats.recommendation_count }}</p>
+                </div>
+            </div>
+            
+            <div class="summary-item">
+                <div class="summary-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="summary-content">
+                    <h3>Processing Time</h3>
+                    <p class="summary-value">{{ stats.processing_time }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="result-actions">
+            <a href="{{ url_for('download_results') }}" class="btn btn-primary">
+                <i class="fas fa-download"></i> Download Results (CSV)
+            </a>
+            
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                <i class="fas fa-redo"></i> Process New Files
+            </a>
+        </div>
+        
+        <div class="result-preview">
+            <h3>Results Preview</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>Recommended Items</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in preview %}
+                        <tr>
+                            <td>{{ row.user_id }}</td>
+                            <td>{{ row.items_id }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="preview-info">
+                <p>Showing {{ preview|length }} of {{ stats.user_count }} results</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

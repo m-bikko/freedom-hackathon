@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Files - Freedom Ticketon Recommendation System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h2 class="h4 mb-0">Upload Data Files</h2>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Please upload the required CSV files to generate recommendations for Freedom Ticketon events.</p>
+                
+                <form action="{{ url_for('upload.upload_files') }}" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                    <div class="mb-3">
+                        <label for="train_test" class="form-label">train_test.csv:</label>
+                        <input type="file" class="form-control" id="train_test" name="train_test" accept=".csv" required>
+                        <div class="form-text">This file contains user interaction history with events.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="events_description" class="form-label">events_description.csv:</label>
+                        <input type="file" class="form-control" id="events_description" name="events_description" accept=".csv" required>
+                        <div class="form-text">This file contains details about events.</div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="loading-spinner"></span>
+                            Generate Recommendations
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer">
+                <div class="text-muted">
+                    <small>Max file size: 100MB. Accepted format: CSV only.</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="h5 mb-0">About this System</h3>
+                </div>
+                <div class="card-body">
+                    <p>This recommendation system uses a hybrid approach combining:</p>
+                    <ul>
+                        <li>User preferences analysis</li>
+                        <li>Temporal patterns (day of week preferences)</li>
+                        <li>Attendance frequency patterns</li>
+                        <li>Geographic preferences</li>
+                        <li>Popularity fallbacks for cold-start scenarios</li>
+                    </ul>
+                    <p class="mb-0">The system will analyze your data and generate recommendations for which events users are likely to attend in April 2024.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    $(document).ready(function() {
+        $('form').on('submit', function() {
+            $('#loading-spinner').removeClass('d-none');
+            $('button[type="submit"]').prop('disabled', true);
+        });
+    });
+</script>
+{% endblock %}

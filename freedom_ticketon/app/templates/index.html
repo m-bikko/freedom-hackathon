@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Freedom Ticketon - Home{% endblock %}
+
+{% block content %}
+<section class="upload-section">
+    <div class="card">
+        <h2>Upload Files</h2>
+        <p>Upload your training and events description files to generate recommendations.</p>
+        
+        <form action="{{ url_for('upload_files') }}" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="train_test">Train/Test Dataset:</label>
+                <div class="file-input-container">
+                    <input type="file" name="train_test" id="train_test" accept=".csv" required>
+                    <div class="file-info">
+                        <i class="fas fa-file-csv"></i>
+                        <span class="file-name">No file selected</span>
+                    </div>
+                </div>
+                <small>CSV file with user-event interactions data</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="events_description">Events Description:</label>
+                <div class="file-input-container">
+                    <input type="file" name="events_description" id="events_description" accept=".csv" required>
+                    <div class="file-info">
+                        <i class="fas fa-file-csv"></i>
+                        <span class="file-name">No file selected</span>
+                    </div>
+                </div>
+                <small>CSV file with event details and descriptions</small>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-upload"></i> Upload and Process
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+
+<section class="info-section">
+    <div class="card">
+        <h2>How It Works</h2>
+        <div class="steps">
+            <div class="step">
+                <div class="step-icon">
+                    <i class="fas fa-file-upload"></i>
+                </div>
+                <div class="step-content">
+                    <h3>1. Upload Files</h3>
+                    <p>Upload your train_test.csv and events_description.csv files.</p>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-icon">
+                    <i class="fas fa-cogs"></i>
+                </div>
+                <div class="step-content">
+                    <h3>2. Processing</h3>
+                    <p>Our recommendation model processes your data to find the best recommendations.</p>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-icon">
+                    <i class="fas fa-download"></i>
+                </div>
+                <div class="step-content">
+                    <h3>3. Download Results</h3>
+                    <p>Download the personalized event recommendations for your users.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Display selected file name
+    document.querySelectorAll('input[type="file"]').forEach(input => {
+        input.addEventListener('change', function() {
+            const fileName = this.files[0] ? this.files[0].name : 'No file selected';
+            this.nextElementSibling.querySelector('.file-name').textContent = fileName;
+        });
+    });
+</script>
+{% endblock %}

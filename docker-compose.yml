@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    restart: always
+    ports:
+      - "5006:5006"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./results:/app/results
+      - ./logs:/app/logs
+    environment:
+      - SECRET_KEY=your_secret_key_here
+      - FLASK_APP=main.py
+      - FLASK_ENV=production
+      - MAX_CONTENT_LENGTH=104857600
+    command: gunicorn --worker-class geventwebsocket.gunicorn.workers.GeventWebSocketWorker --bind 0.0.0.0:5006 --timeout 120 --workers 2 --threads 4 "main:app"

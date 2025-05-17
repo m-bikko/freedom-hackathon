@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}Freedom Ticketon - Processing{% endblock %}
+
+{% block content %}
+<section class="processing-section">
+    <div class="card">
+        <h2>Processing Your Data</h2>
+        <p>Please wait while we process your data and generate recommendations.</p>
+        
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 0%"></div>
+            </div>
+            <div class="progress-info">
+                <span class="progress-percentage">0%</span>
+                <span class="progress-status">Starting...</span>
+            </div>
+        </div>
+        
+        <div class="processing-steps">
+            <div class="processing-step" data-step="1">
+                <div class="step-icon">
+                    <i class="fas fa-file-import"></i>
+                </div>
+                <div class="step-content">
+                    <h3>Loading Data</h3>
+                    <p>Reading and validating your input files.</p>
+                </div>
+                <div class="step-status">
+                    <span class="pending"><i class="fas fa-clock"></i> Pending</span>
+                </div>
+            </div>
+            
+            <div class="processing-step" data-step="2">
+                <div class="step-icon">
+                    <i class="fas fa-filter"></i>
+                </div>
+                <div class="step-content">
+                    <h3>Preprocessing</h3>
+                    <p>Cleaning and preparing data for the model.</p>
+                </div>
+                <div class="step-status">
+                    <span class="pending"><i class="fas fa-clock"></i> Pending</span>
+                </div>
+            </div>
+            
+            <div class="processing-step" data-step="3">
+                <div class="step-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <div class="step-content">
+                    <h3>Building Model</h3>
+                    <p>Training recommendation algorithms.</p>
+                </div>
+                <div class="step-status">
+                    <span class="pending"><i class="fas fa-clock"></i> Pending</span>
+                </div>
+            </div>
+            
+            <div class="processing-step" data-step="4">
+                <div class="step-icon">
+                    <i class="fas fa-lightbulb"></i>
+                </div>
+                <div class="step-content">
+                    <h3>Generating Recommendations</h3>
+                    <p>Creating personalized event recommendations.</p>
+                </div>
+                <div class="step-status">
+                    <span class="pending"><i class="fas fa-clock"></i> Pending</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let progressBar = document.querySelector('.progress-fill');
+        let progressPercentage = document.querySelector('.progress-percentage');
+        let progressStatus = document.querySelector('.progress-status');
+        let processingSteps = document.querySelectorAll('.processing-step');
+        
+        // Function to update the UI with progress
+        function updateProgress(progress) {
+            // Update progress bar
+            progressBar.style.width = progress + '%';
+            progressPercentage.textContent = progress + '%';
+            
+            // Update step status based on progress
+            if (progress < 10) {
+                progressStatus.textContent = 'Starting...';
+            } else if (progress < 40) {
+                progressStatus.textContent = 'Loading data...';
+                updateStepStatus(1, 'in-progress');
+            } else if (progress < 60) {
+                progressStatus.textContent = 'Preprocessing data...';
+                updateStepStatus(1, 'completed');
+                updateStepStatus(2, 'in-progress');
+            } else if (progress < 80) {
+                progressStatus.textContent = 'Building model...';
+                updateStepStatus(2, 'completed');
+                updateStepStatus(3, 'in-progress');
+            } else if (progress < 95) {
+                progressStatus.textContent = 'Generating recommendations...';
+                updateStepStatus(3, 'completed');
+                updateStepStatus(4, 'in-progress');
+            } else {
+                progressStatus.textContent = 'Completed!';
+                updateStepStatus(4, 'completed');
+                
+                // Redirect to results page after a short delay
+                setTimeout(function() {
+                    window.location.href = '{{ url_for("results") }}';
+                }, 1500);
+            }
+        }
+        
+        // Function to update status of a step
+        function updateStepStatus(stepNumber, status) {
+            let step = document.querySelector(`.processing-step[data-step="${stepNumber}"]`);
+            let statusElement = step.querySelector('.step-status span');
+            
+            // Remove existing classes
+            statusElement.classList.remove('pending', 'in-progress', 'completed');
+            
+            // Add new class and update content
+            statusElement.classList.add(status);
+            
+            if (status === 'in-progress') {
+                statusElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> In Progress';
+            } else if (status === 'completed') {
+                statusElement.innerHTML = '<i class="fas fa-check-circle"></i> Completed';
+            }
+        }
+        
+        // Poll the server for progress updates
+        function pollProgress() {
+            fetch('{{ url_for("progress") }}')
+                .then(response => response.json())
+                .then(data => {
+                    updateProgress(data.progress);
+                    
+                    // Continue polling if not complete
+                    if (data.progress < 100 && !data.complete) {
+                        setTimeout(pollProgress, 1000);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching progress:', error);
+                    setTimeout(pollProgress, 2000);
+                });
+        }
+        
+        // Start polling
+        pollProgress();
+    });
+</script>
+{% endblock %}

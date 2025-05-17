@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+
+{% block title %}Processing - Freedom Ticketon Recommendation System{% endblock %}
+
+{% block extra_head %}
+<meta name="session-id" content="{{ session_id }}">
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h2 class="h4 mb-0">Processing Your Data</h2>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="progress-container mb-3">
+                        <div class="progress" style="height: 25px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                role="progressbar" 
+                                style="width: 0%;" 
+                                aria-valuenow="0" 
+                                aria-valuemin="0" 
+                                aria-valuemax="100">0%</div>
+                        </div>
+                    </div>
+                    
+                    <div id="status-message" class="alert alert-info">
+                        Starting recommendation process...
+                    </div>
+                    
+                    <div id="processing-log" class="text-start border p-3 bg-light" style="max-height: 300px; overflow-y: auto;">
+                        <p><small class="text-muted">[System] Processing started. Please wait...</small></p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="text-muted text-center">
+                    <small>This process might take a few minutes. Please don't close this window.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+<script>
+    $(document).ready(function() {
+        const sessionId = $('meta[name="session-id"]').attr('content');
+        let socket = null;
+        let usingFallback = false;
+        let statusCheckInterval = null;
+        
+        // Try to connect with Socket.IO
+        function initSocketConnection() {
+            try {
+                // Configure Socket.IO connection with more options
+                socket = io({
+                    transports: ['polling', 'websocket'],
+                    reconnectionAttempts: 5,
+                    reconnectionDelay: 1000,
+                    timeout: 20000
+                });
+                
+                // When connected to socket
+                socket.on('connect', function() {
+                    console.log('Connected to server');
+                    logMessage('Connected to processing server');
+                });
+                
+                // Connection error handler
+                socket.on('connect_error', function(error) {
+                    console.error('Connection error:', error);
+                    logMessage('Connection error: ' + error.message, 'warning');
+                    
+                    // If we get errors, switch to fallback polling after a few attempts
+                    if (!usingFallback) {
+                        setTimeout(() => {
+                            if (!socket.connected) {
+                                switchToFallback();
+                            }
+                        }, 5000);
+                    }
+                });
+                
+                // Update progress
+                socket.on('progress', function(data) {
+                    console.log('Progress update:', data);
+                    updateProgress(data);
+                });
+                
+                // When processing is complete
+                socket.on('completion', function(data) {
+                    console.log('Completion event:', data);
+                    if (data.session_id === sessionId) {
+                        if (data.success) {
+                            logMessage('Processing completed successfully!', 'success');
+                            // Redirect to results page
+                            setTimeout(function() {
+                                window.location.href = "{{ url_for('upload.result', session_id=session_id) }}";
+                            }, 1000);
+                        } else {
+                            logMessage('Error: ' + data.message, 'danger');
+                            $('#status-message').removeClass('alert-info').addClass('alert-danger');
+                            $('#status-message').text('Processing failed. Please try again.');
+                        }
+                    }
+                });
+                
+                // Disconnect handler
+                socket.on('disconnect', function() {
+                    logMessage('Disconnected from server. If processing is still in progress, results will still be saved.', 'warning');
+                    
+                    // Switch to fallback if disconnected
+                    if (!usingFallback) {
+                        switchToFallback();
+                    }
+                });
+            } catch (error) {
+                console.error('Error initializing socket:', error);
+                logMessage('Failed to initialize socket connection. Switching to regular updates.', 'warning');
+                switchToFallback();
+            }
+        }
+        
+        // Switch to fallback polling method
+        function switchToFallback() {
+            if (usingFallback) return;
+            
+            usingFallback = true;
+            logMessage('Switching to polling for status updates...', 'warning');
+            
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+            }
+            
+            // Start polling for status
+            startStatusPolling();
+        }
+        
+        // Start polling for status via the API
+        function startStatusPolling() {
+            if (statusCheckInterval) clearInterval(statusCheckInterval);
+            
+            statusCheckInterval = setInterval(function() {
+                checkStatus();
+            }, 3000);
+            
+            // Do an immediate check
+            checkStatus();
+        }
+        
+        // Check status via the API
+        function checkStatus() {
+            $.ajax({
+                url: "{{ url_for('upload.check_status', session_id=session_id) }}",
+                type: "GET",
+                dataType: "json",
+                success: function(data) {
+                    console.log('Status update:', data);
+                    
+                    updateProgress(data);
+                    
+                    // Check for completion
+                    if (data.status === 'completed') {
+                        logMessage('Processing completed successfully!', 'success');
+                        
+                        // Clear interval and redirect
+                        clearInterval(statusCheckInterval);
+                        
+                        setTimeout(function() {
+                            window.location.href = "{{ url_for('upload.result', session_id=session_id) }}";
+                        }, 1000);
+                    } else if (data.status === 'error') {
+                        logMessage('Error: ' + data.message, 'danger');
+                        $('#status-message').removeClass('alert-info').addClass('alert-danger');
+                        $('#status-message').text('Processing failed. Please try again.');
+                        
+                        // Clear interval
+                        clearInterval(statusCheckInterval);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error checking status:', error);
+                    logMessage('Error checking status: ' + error, 'warning');
+                }
+            });
+        }
+        
+        function updateProgress(data) {
+            // Update progress bar
+            if (data.percentage !== undefined) {
+                $('.progress-bar').css('width', data.percentage + '%');
+                $('.progress-bar').attr('aria-valuenow', data.percentage);
+                $('.progress-bar').text(data.percentage + '%');
+            }
+            
+            // Update status message
+            if (data.message) {
+                $('#status-message').text(data.message);
+                logMessage(data.message);
+            }
+        }
+        
+        function logMessage(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logClass = type === 'info' ? 'text-muted' : 
+                            (type === 'success' ? 'text-success' : 
+                            (type === 'danger' ? 'text-danger' : 'text-warning'));
+            
+            $('#processing-log').append(`<p><small class="${logClass}">[${timestamp}] ${message}</small></p>`);
+            
+            // Auto-scroll to bottom
+            const log = document.getElementById('processing-log');
+            log.scrollTop = log.scrollHeight;
+        }
+        
+        // Start with Socket.IO
+        initSocketConnection();
+        
+        // Fallback if no updates in 10 seconds
+        setTimeout(function() {
+            if (!usingFallback && (!socket || !socket.connected)) {
+                switchToFallback();
+            }
+        }, 10000);
+    });
+</script>
+{% endblock %}

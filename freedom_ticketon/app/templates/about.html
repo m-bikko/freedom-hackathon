@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Freedom Ticketon - About{% endblock %}
+
+{% block content %}
+<section class="about-section">
+    <div class="card">
+        <h2>About Freedom Ticketon Recommendation System</h2>
+        
+        <div class="about-content">
+            <h3>Project Overview</h3>
+            <p>The Freedom Ticketon Recommendation System is designed to provide personalized event recommendations 
+            to users based on their historical preferences and event characteristics. This system helps users discover 
+            new events that they might enjoy, enhancing their overall experience with the ticketing platform.</p>
+            
+            <h3>How It Works</h3>
+            <div class="workflow">
+                <div class="workflow-step">
+                    <div class="workflow-icon">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <div class="workflow-content">
+                        <h4>Data Collection</h4>
+                        <p>The system analyzes user interaction history and event metadata to understand preferences.</p>
+                    </div>
+                </div>
+                
+                <div class="workflow-step">
+                    <div class="workflow-icon">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <div class="workflow-content">
+                        <h4>Model Building</h4>
+                        <p>Using advanced algorithms, the system identifies patterns in user behavior and event features.</p>
+                    </div>
+                </div>
+                
+                <div class="workflow-step">
+                    <div class="workflow-icon">
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <div class="workflow-content">
+                        <h4>Recommendation Generation</h4>
+                        <p>Based on the learned patterns, the system suggests events that users are likely to enjoy.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <h3>Technologies Used</h3>
+            <ul class="tech-list">
+                <li><i class="fab fa-python"></i> Python</li>
+                <li><i class="fas fa-flask"></i> Flask</li>
+                <li><i class="fas fa-brain"></i> Machine Learning</li>
+                <li><i class="fab fa-docker"></i> Docker</li>
+                <li><i class="fas fa-database"></i> Pandas</li>
+                <li><i class="fas fa-chart-line"></i> NumPy</li>
+                <li><i class="fas fa-code"></i> JavaScript</li>
+            </ul>
+        </div>
+    </div>
+</section>
+{% endblock %}
